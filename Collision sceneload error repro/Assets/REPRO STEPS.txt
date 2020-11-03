@@ -17,9 +17,8 @@ Error reproducibility: 100% of the time following the steps outlined below.
 
                         --- ERROR REPRODUCTION STEPS ---
 
-0. Load 
 
-1. Start player
+1. Load either the Trigger or Collision scene. Start play-mode.
 
 2. Press E to load in the next subscene (starts at 00), until you get to subscene02
 
