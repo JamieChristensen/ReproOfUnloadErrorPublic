@@ -1,0 +1,59 @@
+EXPLANATION:
+
+Unloading a subscene while a trigger or collision is ongoing in that subscene, 
+results in an error (stacktrace in bottom of this txt), in the StepPhysicsWorld system. 
+(disabling the system in entity-debugger stops it from happening
+
+Controls are: Q/E to load current subscene -1/+1 respectively.
+
+subscene02 has the setup that results in errors when unloading as collisions are happening.
+A forum user seems to have encountered this here: 
+
+                 https://fogbugz.unity3d.com/f/cases/1247749/ 
+
+Error reproducibility: 100% of the time following the steps outlined below.
+
+(Identical procedure for TriggerScene and CollisionScene)
+
+                        --- ERROR REPRODUCTION STEPS ---
+
+0. Load 
+
+1. Start player
+
+2. Press E to load in the next subscene (starts at 00), until you get to subscene02
+
+3. Wait for box to drop on the ground static collider and rest there, or for it to be inside the trigger). 
+    Load into a new subscene using Q or E (unloads subscene02) while the above condition is true. 
+    (You have to be a bit fast with the TriggerScene)
+
+4. You should get the error: "InvalidOperationException: BlobAssetReference is invalid
+    (look at bottom of this document for full stacktrace). 
+
+5. If you load into the scenes with no physics, the error keeps going seemingly every physics-update. 
+    Loading back in to subscene02 will stop the error. 
+    disabling StepPhysicsWorld in the EntityDebugger also stops the error - reenabling it resumes the error-messages.
+
+6. If you unload subscene02 when no collision- or trigger-events are happening, 
+    the error does not happen in the newly loaded scene.
+
+7. Repeating steps 2. and 3. results in step 4. again. 
+
+
+Note: Completing the physics-systems dependencies before unloading does not have any effect. 
+    (See SubSceneLoader.cs lines 71-72)
+
+
+FULL STACKTRACE (disable burst-compilation for this): 
+InvalidOperationException: The BlobAssetReference is not valid. Likely it has already been unloaded or released.
+Unity.Entities.BlobAssetReferenceData.ValidateNonBurst () (at Library/PackageCache/com.unity.entities@0.16.0-preview.21/Unity.Entities/Blobs.cs:254)
+Unity.Entities.BlobAssetReferenceData.ValidateAllowNull () (at Library/PackageCache/com.unity.entities@0.16.0-preview.21/Unity.Entities/Blobs.cs:280)
+Unity.Entities.BlobAssetReference`1[T].GetUnsafePtr () (at Library/PackageCache/com.unity.entities@0.16.0-preview.21/Unity.Entities/Blobs.cs:332)
+Unity.Physics.ManifoldQueries.BodyBody (Unity.Physics.RigidBody& rigidBodyA, Unity.Physics.RigidBody& rigidBodyB, Unity.Physics.MotionVelocity& motionVelocityA, Unity.Physics.MotionVelocity& motionVelocityB, System.Single collisionTolerance, System.Single timeStep, Unity.Physics.BodyIndexPair pair, Unity.Collections.NativeStream+Writer& contactWriter) (at Library/PackageCache/com.unity.physics@0.5.1-preview.2/Unity.Physics/Collision/Queries/Manifold.cs:48)
+Unity.Physics.NarrowPhase+ParallelCreateContactsJob.ExecuteImpl (Unity.Physics.PhysicsWorld& world, System.Single timeStep, Unity.Collections.NativeArray`1[T] dispatchPairs, System.Int32 dispatchPairReadOffset, System.Int32 numPairsToRead, Unity.Collections.NativeStream+Writer& contactWriter) (at Library/PackageCache/com.unity.physics@0.5.1-preview.2/Unity.Physics/Dynamics/Simulation/Narrowphase.cs:111)
+Unity.Physics.NarrowPhase+ParallelCreateContactsJob.Execute (System.Int32 workItemIndex) (at Library/PackageCache/com.unity.physics@0.5.1-preview.2/Unity.Physics/Dynamics/Simulation/Narrowphase.cs:78)
+Unity.Jobs.IJobParallelForDeferExtensions+JobParallelForDeferProducer`1[T].Execute (T& jobData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, Unity.Jobs.LowLevel.Unsafe.JobRanges& ranges, System.Int32 jobIndex) (at Library/PackageCache/com.unity.jobs@0.7.0-preview.17/Unity.Jobs/IJobParallelForDefer.cs:62)
+
+
+
+
